@@ -12,18 +12,9 @@ plugins {
           versionCode 1
           versionName "1.0"
       }
-      signingConfigs {
-          release {
-              storeFile file("release-key.jks")
-              storePassword "shqq2024pass"
-              keyAlias "shqq-key"
-              keyPassword "shqq2024pass"
-          }
-      }
       buildTypes {
           release {
               minifyEnabled false
-              signingConfig signingConfigs.release
               proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
           }
       }
