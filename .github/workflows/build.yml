@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build AAB
 on:
   push:
     branches: [ main ]
@@ -8,19 +8,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-      - name: Build Debug APK
-        run: ./gradlew assembleRelease
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: android-actions/setup-android@v3
+      - run: chmod +x ./gradlew
+      - name: Generate Keystore
+        run: |
+          keytool -genkeypair -noprompt \
+            -keystore keystore.jks -alias shqq \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass pass1234 -keypass pass1234 \
+            -dname "CN=App,O=App,C=JO"
+      - name: Build Signed AAB
+        run: |
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=$PWD/keystore.jks \
+            -Pandroid.injected.signing.store.password=pass1234 \
+            -Pandroid.injected.signing.key.alias=shqq \
+            -Pandroid.injected.signing.key.password=pass1234
+      - uses: actions/upload-artifact@v4
         with:
-          name: shqq-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          name: shqq-release-aab
+          path: app/build/outputs/bundle/release/app-release.aab
